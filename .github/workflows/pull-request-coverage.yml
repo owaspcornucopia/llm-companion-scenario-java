@@ -9,7 +9,7 @@ on:
 
 jobs:
   coverage:
-    name: Java 25 Coverage Gate
+    name: Coverage Gate
     runs-on: ubuntu-latest
     env:
       JAVA_VERSION: '25'
