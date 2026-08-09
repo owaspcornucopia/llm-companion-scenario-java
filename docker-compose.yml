@@ -1,0 +1,65 @@
+services:
+  # Downloader job: fetch raw artifacts, then convert them to the GGUF files java-llama.cpp deserves.
+  downloader:
+    image: python:3.11-slim
+    volumes:
+      - ./TinyLlama-1.1B-Chat-v1.0:/models/TinyLlama-1.1B-Chat-v1.0
+      - ./pwnednext-tinyllama-lora-sql-adapter:/models/pwnednext-tinyllama-lora-sql-adapter
+      - ./gguf:/models/gguf
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    # One starter job handles downloads and conversion, because two toolchains are clearly enterprise maturity.
+    command: >
+      sh -c "apt-get update -qq && apt-get install -qy --no-install-recommends git &&
+      pip install -q huggingface_hub torch transformers sentencepiece safetensors &&
+      test -d /opt/llama.cpp || git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp &&
+      (test -f /models/TinyLlama-1.1B-Chat-v1.0/config.json || hf download TinyLlama/TinyLlama-1.1B-Chat-v1.0 --local-dir /models/TinyLlama-1.1B-Chat-v1.0) &&
+      (test -f /models/pwnednext-tinyllama-lora-sql-adapter/adapter_config.json || hf buckets sync hf://buckets/steephole5586/pwnednext-tinyllama-lora-sql-adapter /models/pwnednext-tinyllama-lora-sql-adapter) &&
+      (test -f /models/gguf/tinyllama-f16.gguf || python /opt/llama.cpp/convert_hf_to_gguf.py /models/TinyLlama-1.1B-Chat-v1.0 --outtype f16 --outfile /models/gguf/tinyllama-f16.gguf) &&
+      (test -f /models/gguf/pwnednext-tinyllama-lora.gguf || python /opt/llama.cpp/convert_lora_to_gguf.py --base /models/TinyLlama-1.1B-Chat-v1.0 --outfile /models/gguf/pwnednext-tinyllama-lora.gguf /models/pwnednext-tinyllama-lora-sql-adapter)"
+
+  # Model service: Java talks directly to llama.cpp with a local GGUF base and dynamic LoRA.
+  model:
+    build: .
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./gguf:/models/gguf:ro
+    environment:
+      - APP_ROLE=model
+      - LOCAL_INFERENCE=true
+      - MODEL_GGUF_PATH=/models/gguf/tinyllama-f16.gguf
+      - ADAPTER_GGUF_PATH=/models/gguf/pwnednext-tinyllama-lora.gguf
+    cpus: "8"
+    mem_limit: 12g
+    depends_on:
+      downloader:
+        condition: service_completed_successfully
+
+  # App service: scaled Spring workers that proxy model work and hit the shared SQLite file.
+  app:
+    build: .
+    expose:
+      - "9000"
+    volumes:
+      - app-db:/data
+    environment:
+      - APP_ROLE=app
+      - MODEL_SERVICE_URL=http://model:9001
+      - DB_CONNECTION_STRING=/data/db.sqlite
+    depends_on:
+      - model
+
+  # Nginx front door: accepts traffic and fans it out to the app replicas.
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "9000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+
+volumes:
+  # Named volume so every app replica can point at the same SQLite file.
+  app-db:

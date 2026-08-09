@@ -1,0 +1,5 @@
+target/
+*.db
+TinyLlama-1.1B-Chat-v1.0/
+pwnednext-tinyllama-lora-sql-adapter/
+gguf/
