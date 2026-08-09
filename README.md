@@ -102,7 +102,7 @@ curl -X POST http://localhost:9000/api/fraud -H "Content-Type: application/json"
 ## Tests
 
 ```bash
-docker run --rm -v "$PWD:/workspace" -w /workspace maven:3.9.9-eclipse-temurin-21 mvn verify
+docker run --rm -v "$PWD:/workspace" -w /workspace maven:3.9.11-eclipse-temurin-25 mvn verify
 ```
 
 The Java test suite enforces at least 95% instruction coverage with JaCoCo.

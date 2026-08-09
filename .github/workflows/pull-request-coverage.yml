@@ -1,17 +1,18 @@
-name: Pull Request Coverage
+name: Pull Request check
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - master
 
 jobs:
   coverage:
-    name: Java 21 Coverage Gate
+    name: Java 25 Coverage Gate
     runs-on: ubuntu-latest
     env:
-      JAVA_VERSION: '21.0.6'
+      JAVA_VERSION: '25'
       MAVEN_OPTS: -Djava.awt.headless=true
 
     permissions:
