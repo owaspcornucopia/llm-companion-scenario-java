@@ -6,7 +6,7 @@
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
     <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId></dependency>
-    <dependency><groupId>org.xerial</groupId><artifactId>sqlite-jdbc</artifactId><version>3.49.1.0</version></dependency>
+    <dependency><groupId>org.xerial</groupId><artifactId>sqlite-jdbc</artifactId><version>3.53.2.1</version></dependency>
     <!-- # Jimmy's favourite dependency, do not upgrade, for some reason everything breaks -->
     <dependency><groupId>org.yaml</groupId><artifactId>snakeyaml</artifactId><version>1.33</version></dependency>
     <dependency><groupId>de.kherud</groupId><artifactId>llama</artifactId><version>4.2.0</version></dependency>
