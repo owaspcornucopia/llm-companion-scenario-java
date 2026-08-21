@@ -1,4 +1,4 @@
-# PwnedNext - An OWASP Cornucopia LLM Companion Guide App
+# PwnedNext - An OWASP Cornucopia LLM Companion Guide App - Java
 
 <img src="https://media.githubusercontent.com/media/owaspcornucopia/llm-companion-scenario/refs/heads/main/images/pwnednext.jpg" width="1000">
 
