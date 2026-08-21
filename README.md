@@ -1,18 +1,21 @@
 # PwnedNext - An OWASP Cornucopia LLM Companion Guide App
 
-<img src="/images/pwnednext.jpg" width="1000">
+<img src="https://media.githubusercontent.com/media/owaspcornucopia/llm-companion-scenario/refs/heads/main/images/pwnednext.jpg" width="1000">
 
-F-Corp Ltd just finished coding their brand new multitenanted AI application "AI Anti-Fraud 3.0" for Fintech customers. PwnedNext, a European company selling solutions to banks and financial institutions, is considering buying F-Corp.
+A-Corp Ltd just finished coding their brand-new multi-tenant AI application "AI Anti-Fraud 3.0" to be used by their customers in the Fintech space.
+This has caught the interest of PwnedNext, a European company that sells solutions to a number of banks and financial institutions. They have therefore voiced their interest in buying A-Corp and its new AI system.
 
-Article 9 of the AI Act requires risk management for a high-risk AI system. F-Corp missed threat modelling entirely, so its CTO has gathered the junior developers and testers for an OWASP Cornucopia session.
+But under Article 9 of the AI Act, any AI system classified as "high-risk" mandates the implementation of a comprehensive risk management system throughout the entire lifecycle of the system. In order to identify foreseeable risks, PwnedNext is required to identify and analyze known and reasonably foreseeable AI risks. This includes examining what happens when the system faces adversarial attacks or is misused, forcing a practical threat modelling process. A-Corp must therefore prove that its system is designed and developed to be robust, secure, and adequately protected against unauthorized access, data poisoning, and manipulation.
+
+The current CEO of A-Corp is panicking after becoming aware that they haven't done any threat modelling or risk assessment during the development of AI Anti-Fraud 3.0. Luckily, the CTO has heard about this game called OWASP Cornucopia that can be used to do threat modelling of AI applications quickly in order to satisfy PwnedNext's threat modelling and risk management requirements. He immediately urges all his junior AI developers and testers to come together for an OWASP Cornucopia session.
 
 You are those junior developers.
 
 ## High-Level Architecture of AI Anti-Fraud 3.0
 
-![Architecture sequence diagram](/architecture-sequence-diagram.svg)
+![Architecture sequence diagram](https://raw.githubusercontent.com/owaspcornucopia/llm-companion-scenario/refs/heads/main/architecture-sequence-diagram.svg)
 
-![Threat model](/ThreatDragonModels/threatmodel.png)
+![Threat model](https://raw.githubusercontent.com/owaspcornucopia/llm-companion-scenario/refs/heads/main/ThreatDragonModels/threatmodel.png)
 
 AI Anti-Fraud 3.0 is a small microservice system with a Java request service, Java local inference service, supporting artifact downloader, shared SQLite database, and Nginx proxy.
 
