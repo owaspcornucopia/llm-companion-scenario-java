@@ -17,6 +17,8 @@ You are those junior developers and testers.
 
 ![Threat model](https://raw.githubusercontent.com/owaspcornucopia/llm-companion-scenario/refs/heads/main/ThreatDragonModels/threatmodel.png)
 
+Threat model template: [OWASP Threat Dragon EoP Games DFD](ThreatDragonModels/threatmodel.json)
+
 AI Anti-Fraud 3.0 is a small microservice system with a Java request service, Java local inference service, supporting artifact downloader, shared SQLite database, and Nginx proxy.
 
 ### AI Anti-Fraud 3.0 Components
