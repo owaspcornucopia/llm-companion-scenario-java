@@ -116,6 +116,13 @@ The Java test suite enforces at least 95% instruction coverage with JaCoCo.
 docker compose up --build --scale app=3
 ```
 
+## Safety boundary
+
+Run this project only with synthetic transactions in an isolated emulator. Do not
+connect it to a real bank, real credentials, or a production model. The
+comments are intentionally blunt and overconfident to help you, who are not
+reading every line of code, understand why each insecure choice exists.
+
 ## License
 
 This work is a derivative of OWASP Cornucopia, used under the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license. This derivative work is also published under the same CC BY-SA 4.0 license.
