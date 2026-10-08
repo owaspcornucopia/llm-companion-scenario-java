@@ -74,8 +74,28 @@ class ScenarioTests {
 
   @Test void modelClientPostsMessages() throws Exception {
     HttpServer server = HttpServer.create(new InetSocketAddress(9001), 0);
-    int[] calls = {0}; server.createContext("/generate", exchange -> { byte[] body = (++calls[0] == 1 ? "{\"result\":\"ok\"}" : "{\"error\":\"down\"}").getBytes(); exchange.sendResponseHeaders(calls[0] == 1 ? 200 : 503, body.length); exchange.getResponseBody().write(body); exchange.close(); }); server.start();
-    try { ModelClient client = new ModelClient(); assertEquals("ok", client.generate(List.of(new Message("user", "hi")))); assertThrows(RuntimeException.class, () -> client.generate(List.of())); } finally { server.stop(0); }
+    int[] calls = {0}; server.createContext("/generate", exchange -> { byte[] body = (++calls[0] == 1 ? "{\"result\":\"ok\"}" : "{\"error\":\"down\"}").getBytes(); exchange.sendResponseHeaders(calls[0] == 1 ? 200 : 503, body.length); exchange.getResponseBody().write(body); exchange.close(); });
+    server.createContext("/health", exchange -> { byte[] body = "{\"status\":\"java-llama.cpp\"}".getBytes(); exchange.sendResponseHeaders(200, body.length); exchange.getResponseBody().write(body); exchange.close(); }); server.start();
+    try {
+      ModelClient client = new ModelClient();
+      assertEquals("ok", client.generate(List.of(new Message("user", "hi"))));
+      assertTrue(client.isAvailable());
+      assertEquals(200, new FraudController(client, seededTool(), new ToolCallParser()).health().getStatusCode().value());
+      assertThrows(RuntimeException.class, () -> client.generate(List.of()));
+    } finally { server.stop(0); }
+  }
+
+  @Test void frontendAssetsAndReportEndpointAreAvailable() throws Exception {
+    assertNotNull(ScenarioTests.class.getResource("/static/index.html"));
+    assertNotNull(ScenarioTests.class.getResource("/static/styles.css"));
+    assertNotNull(ScenarioTests.class.getResource("/static/app.js"));
+
+    FraudController controller = new FraudController(messages -> "unused", seededTool(), new ToolCallParser());
+    ResponseEntity<byte[]> report = controller.report("Check transaction TX-1002", "Investigation complete", "transaction answer");
+    assertEquals(200, report.getStatusCode().value());
+    assertTrue(new String(report.getBody()).contains("transaction answer"));
+    assertEquals(503, controller.health().getStatusCode().value());
+    assertEquals(400, controller.report("", "", "").getStatusCode().value());
   }
 
   private InvestigationTool seededTool() throws Exception {

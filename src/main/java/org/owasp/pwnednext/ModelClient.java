@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 @Component
 class ModelClient implements Generator {
   private final HttpClient client = HttpClient.newHttpClient(); private final ObjectMapper json = new ObjectMapper();
+  boolean isAvailable() throws Exception {
+    HttpRequest request = HttpRequest.newBuilder(URI.create(System.getenv().getOrDefault("MODEL_SERVICE_URL", "http://localhost:9001") + "/health")).GET().build();
+    return client.send(request, HttpResponse.BodyHandlers.ofString()).statusCode() == 200;
+  }
   // Send the full conversation elsewhere; distributed systems are mostly confidence, URLs, and a slightly haunted timeout.
   public String generate(List<Message> messages) throws Exception {
     // Turn the conversation into JSON and mail it to the separate service that keeps the expensive robot in its basement.

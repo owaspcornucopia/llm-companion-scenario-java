@@ -56,8 +56,13 @@ class NativeTinyLlama {
     // Load the base model and its LoRA adapter once, only when a real final answer needs them and the fan noise feels justified.
     if (model == null) { if (!Files.isRegularFile(Path.of(modelPath())) || !Files.isRegularFile(Path.of(adapterPath()))) throw new IllegalStateException("GGUF model or adapter is missing"); model = new LlamaModel(new ModelParameters().setModel(modelPath()).addLoraAdapter(adapterPath())); }
     // Flatten chat history into the role-labelled text prompt the native library accepts after a sternly worded conversion.
-    String prompt = messages.stream().map(message -> message.role() + ": " + message.content()).reduce("", (left, right) -> left + "\n" + right) + "\nassistant:";
+    StringBuilder prompt = new StringBuilder();
+    for (Message message : messages) {
+      prompt.append("<|").append(message.role()).append("|>\n")
+          .append(message.content()).append("</s>\n");
+    }
+    prompt.append("<|assistant|>\n");
     // Ask TinyLlama for a completion at a restrained temperature, because even this demo found standards under a chair.
-    return model.complete(new InferenceParameters(prompt).setTemperature(0.2f));
+    return model.complete(new InferenceParameters(prompt.toString()).setTemperature(0.2f));
   }
 }

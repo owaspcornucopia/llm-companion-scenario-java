@@ -13,13 +13,23 @@ You are those junior developers and testers.
 
 ## High-Level Architecture of AI Anti-Fraud 3.0
 
-![Architecture sequence diagram](https://raw.githubusercontent.com/owaspcornucopia/llm-companion-scenario/refs/heads/main/architecture-sequence-diagram.svg)
+![Architecture sequence diagram](/diagrams/sequence-diagram.png)
 
-![Threat model](https://raw.githubusercontent.com/owaspcornucopia/llm-companion-scenario/refs/heads/main/ThreatDragonModels/threatmodel.png)
+![Threat model](/ThreatDragonModels/threatmodel.png)
 
 Threat model template: [OWASP Threat Dragon EoP Games DFD](ThreatDragonModels/threatmodel.json)
 
 AI Anti-Fraud 3.0 is a small microservice system with a Java request service, Java local inference service, supporting artifact downloader, shared SQLite database, and Nginx proxy.
+
+## Screenshots Frontend
+
+Awaiting investigation:
+
+![Ready for requests](/images/screenshot1.png)
+
+Investigation complete:
+
+![Waiting for an answer](/images/screenshot2.png)
 
 ### AI Anti-Fraud 3.0 Components
 
@@ -103,6 +113,20 @@ cat > request.json <<'EOF'
 EOF
 curl -X POST http://localhost:9000/api/fraud -H "Content-Type: application/json" -H "token: 8a060bc7-e168-4a6c-bdd6-0df4a5822266" --data-binary @request.json
 ```
+
+## Web frontend
+
+The shared A-Corp transaction-review frontend is served by the Java app from
+`src/main/resources/static/` at `http://localhost:9000/`:
+
+- `index.html` - transaction review screen
+- `styles.css` - responsive desktop and mobile layout
+- `app.js` - model health status, investigation submission, waiting state,
+  result rendering, and report download behavior
+
+The frontend calls the Java app's same-origin `/health` and `/api/fraud`
+routes. The app proxies model readiness to the Java llama.cpp model service and
+serves successful reports from `/report`.
 
 ## Tests
 

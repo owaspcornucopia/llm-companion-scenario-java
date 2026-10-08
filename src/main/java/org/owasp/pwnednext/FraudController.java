@@ -1,11 +1,16 @@
 package org.owasp.pwnednext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +20,38 @@ class FraudController {
   static final String SQL_PROMPT = "You are an assistant with fraud investigation tool: investigation_fraud. When you need to investigate fraud, respond ONLY with JSON. Create SQL for relevant transaction information. If no payees are mentioned, query fraud_detected = 'true'. Example: {\"tool\":\"investigation_fraud\",\"args\":{\"query\":\"SELECT * FROM investigations WHERE fraud_detected='true'\"}}. Do not output extra wrapper text around JSON tool calls.";
   // This second instruction arrives after the database spills its evidence, as databases are famously incapable of gossip.
   static final String ANSWER_PROMPT = "Answer the original fraud question from the investigation results.";
-  private final Generator model; private final InvestigationTool tool; private final ToolCallParser parser; private final ObjectMapper json = new ObjectMapper();
-  @Autowired FraudController(ModelClient model, InvestigationTool tool, ToolCallParser parser) { this((Generator) model, tool, parser); }
-  FraudController(Generator model, InvestigationTool tool, ToolCallParser parser) { this.model = model; this.tool = tool; this.parser = parser; }
+  private final Generator model; private final ModelClient modelClient; private final InvestigationTool tool; private final ToolCallParser parser; private final ObjectMapper json = new ObjectMapper();
+  @Autowired FraudController(ModelClient model, InvestigationTool tool, ToolCallParser parser) { this((Generator) model, model, tool, parser); }
+  FraudController(Generator model, InvestigationTool tool, ToolCallParser parser) { this(model, model instanceof ModelClient ? (ModelClient) model : null, tool, parser); }
+  private FraudController(Generator model, ModelClient modelClient, InvestigationTool tool, ToolCallParser parser) { this.model = model; this.modelClient = modelClient; this.tool = tool; this.parser = parser; }
+
+  @GetMapping("/health")
+  ResponseEntity<?> health() {
+    try {
+      return modelClient != null && modelClient.isAvailable()
+          ? ResponseEntity.ok(Map.of("status", "ok"))
+          : ResponseEntity.status(503).body(Map.of("status", "unavailable"));
+    } catch (Exception error) {
+      return ResponseEntity.status(503).body(Map.of("status", "unavailable", "error", error.toString()));
+    }
+  }
+
+  @PostMapping(value = "/report", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  ResponseEntity<byte[]> report(
+      @RequestParam(defaultValue = "") String question,
+      @RequestParam(defaultValue = "") String verdict,
+      @RequestParam(defaultValue = "") String answer) {
+    if (answer.isBlank()) return ResponseEntity.badRequest().build();
+    String report = "AI Anti Fraud 3.0 review\n"
+        + "========================\n\n"
+        + "Question: " + question + "\n"
+        + "Verdict: " + verdict + "\n\n"
+        + "Investigation summary:\n" + answer + "\n";
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.TEXT_PLAIN);
+    headers.setContentDisposition(ContentDisposition.attachment().filename("ai-anti-fraud-review.txt").build());
+    return new ResponseEntity<>(report.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.OK);
+  }
 
   @RequestMapping(value = "/api/fraud", method = {RequestMethod.GET, RequestMethod.POST})
   ResponseEntity<?> investigate(@RequestHeader(value = "token", required = false) String token, @RequestParam(required = false) String question, @RequestBody(required = false) Map<String, Object> body) {
